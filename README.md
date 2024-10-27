@@ -8,6 +8,20 @@ This project currently doesn't exist, because I haven't built any of it yet, but
 
 ## Developing
 
+### Get needed data
+
+Download [a list of stock tickers from the SEC](https://www.sec.gov/files/company_tickers.json) to `src/data/company_tickers.json`, then generate a preprocessed version used by the app with:
+
+```
+jq -c \
+  'to_entries | map([.value.ticker, .value.title])' \
+  company_tickers.json > ticker_pairs.json
+```
+
+This is used for generating room codes.
+
+### Install dependencies + run
+
 Install dependencies with `npm install`, then start a development server with:
 
 ```bash
@@ -32,3 +46,9 @@ You can preview the production build with `npm run preview`.
 
 - [ ] Install an [adapter](https://svelte.dev/docs/kit/adapters), probably for Node.
 - [ ] Build everything
+
+## Questions
+
+**What's the `.ignore` file symlink for?**
+
+I've been playing around with [Jujutsu](https://github.com/martinvonz/jj), which is great fun, but my editor ([Helix](https://github.com/helix-editor/helix)) doesn't read the `.gitignore` file when there's no `.git` directory, but it [will read a `.ignore` file if you've got one](https://docs.helix-editor.com/editor.html#editorfile-picker-section).

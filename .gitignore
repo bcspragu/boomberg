@@ -22,3 +22,8 @@ vite.config.ts.timestamp-*
 
 # SQLite
 *.db
+*.sqlite
+
+# Get from https://www.sec.gov/files/company_tickers.json
+/src/data/company_tickers.json
+/src/data/ticker_pairs.json
