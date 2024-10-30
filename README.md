@@ -41,7 +41,6 @@ npm run build
 
 You can preview the production build with `npm run preview`.
 
-
 ## TODO
 
 - [ ] Install an [adapter](https://svelte.dev/docs/kit/adapters), probably for Node.
