@@ -1,9 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { getUser } from '$lib/context/user.svelte'
+  import { Terminal } from '$lib/context/terminal.svelte'
   import type { ViewRequest } from '../boomberg'
 
   interface Props {
+    id: number
     viewRequested: (req: ViewRequest) => void
   }
 
@@ -170,6 +172,7 @@
   }
 
   let shellPrefix = $derived(`${traderName}@boom $ `)
+  const term = new Terminal({get shellPrefix() { return shellPrefix }})
   // svelte-ignore state_referenced_locally
   let contents: string[] = $state([
     'Welcome to your Boomberg terminal!',

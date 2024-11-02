@@ -19,7 +19,7 @@
 {#snippet theNode()}
   {#if node.type === 'Leaf'}
     {#if node.node.type === 'Terminal'}
-      <Terminal viewRequested={(req) => viewRequested(node.id, req)} />
+      <Terminal id={node.id} viewRequested={(req) => viewRequested(node.id, req)} />
     {:else if node.node.type === 'Stonk'}
       <Stonk />
     {/if}
