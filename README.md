@@ -43,8 +43,24 @@ You can preview the production build with `npm run preview`.
 
 ## TODO
 
+### Development
+
+- [ ] Generate stonk trajectories
+  - Each stonk should get a randomly generated trajectory
+    - Shapes should be dramatic. Some should go way up, some should go sideways, some should legitimately crater, some should have crazy swings.
+  - Use LLMs to create news events to explain the more major changes
+  - Design the modifier system
+    - Should use [tool use with Claude](https://docs.anthropic.com/en/docs/build-with-claude/tool-use) to determine modifier values.
+- [ ] Implement the `inbox` command and system
+  - Messages should be stored in the DB
+  - Pushed via WebSockets (take inspiration [from this repo](https://github.com/suhaildawood/SvelteKit-integrated-WebSocket/blob/main/src/hooks.server.ts))
+  - `inbox list`, `inbox view <id>`, `inbox clear`, etc
+  - Show count in status bar
+- [ ] Build everything else
+
+### Deployment
+
 - [ ] Install an [adapter](https://svelte.dev/docs/kit/adapters), probably for Node.
-- [ ] Build everything
 
 ## Questions
 
