@@ -5,3 +5,6 @@ yarn.lock
 
 # Jujutsu
 .jj/
+
+# Auto-generated ORM files
+drizzle/

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "21142e20-71f9-4ac5-b9a6-d2f85c783248",
+  "id": "77df97b5-3d43-489c-a83e-229c11c3dfea",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "game": {
@@ -48,12 +48,16 @@
       "indexes": {
         "ticker_idx": {
           "name": "ticker_idx",
-          "columns": ["ticker"],
+          "columns": [
+            "ticker"
+          ],
           "isUnique": false
         },
         "created_at_idx": {
           "name": "created_at_idx",
-          "columns": ["created_at"],
+          "columns": [
+            "created_at"
+          ],
           "isUnique": false
         }
       },
@@ -62,8 +66,12 @@
           "name": "game_creator_id_session_id_fk",
           "tableFrom": "game",
           "tableTo": "session",
-          "columnsFrom": ["creator_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "creator_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -101,7 +109,10 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "game_participant_game_id_user_id_pk": {
-          "columns": ["game_id", "user_id"],
+          "columns": [
+            "game_id",
+            "user_id"
+          ],
           "name": "game_participant_game_id_user_id_pk"
         }
       },
@@ -143,7 +154,9 @@
       "indexes": {
         "session_session_id_unique": {
           "name": "session_session_id_unique",
-          "columns": ["session_id"],
+          "columns": [
+            "session_id"
+          ],
           "isUnique": true
         }
       },
