@@ -8,9 +8,9 @@ export class StatusBar {
 
 export const initStatusBar = (): StatusBar => {
   const statusBar = new StatusBar()
-  statusBar.leftMessage = 'LEFT '.repeat(4)
-  statusBar.centerMessage = 'CENTER '.repeat(4)
-  statusBar.rightMessage = 'RIGHT '.repeat(4)
+  statusBar.leftMessage = 'LEFT '.repeat(3)
+  statusBar.centerMessage = 'CENTER '.repeat(3)
+  statusBar.rightMessage = 'RIGHT '.repeat(3)
   setContext('statusbar', statusBar)
   return statusBar
 }

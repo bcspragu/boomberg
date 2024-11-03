@@ -29,7 +29,11 @@
       x
     </button>
     {#if node.node.type === 'Terminal'}
-      <Terminal id={node.id} viewRequested={(req) => viewRequested(node.id, req)} />
+      <Terminal
+        id={node.id}
+        showHelp={node.node.showHelp}
+        viewRequested={(req) => viewRequested(node.id, req)}
+      />
     {:else if node.node.type === 'Stonk'}
       <Stonk />
     {/if}

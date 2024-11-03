@@ -16,7 +16,7 @@
 <div class="flex h-full w-full flex-col">
   <div class="flex-1">{@render children()}</div>
   <div
-    class="flex justify-between whitespace-pre bg-green-400 p-1 font-mono text-lg font-bold leading-none text-black"
+    class="flex justify-between overflow-hidden truncate text-ellipsis whitespace-pre bg-green-400 p-1 font-mono text-lg font-bold leading-none text-black"
   >
     <div>{bar.leftMessage}</div>
     <div>{bar.centerMessage}</div>

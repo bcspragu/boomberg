@@ -5,6 +5,7 @@ import type { ViewRequest } from '../../boomberg'
 export interface TerminalParams {
   shellPrefix: () => string
   setName: (name: string) => void
+  showHelp: boolean
 }
 
 interface ActionCommand {
@@ -28,7 +29,7 @@ export class Terminal {
 
   _commands: Record<string, Command>
 
-  contents: string[] = $state([])
+  contents: (string | { html: string })[] = $state([])
   cursorPosition: number = $state(0)
   showCursor: boolean = $state(true)
   shouldBlink: boolean = $state(false)
@@ -39,13 +40,19 @@ export class Terminal {
   constructor(params: TerminalParams) {
     this._shellPrefix = params.shellPrefix
     this._setName = params.setName
-    this.contents = [
-      'Welcome to your Boomberg terminal!',
-      '',
-      "Type 'help' then hit <Enter> to get started.",
-      '',
-      this.shellPrefix,
-    ]
+    this.contents = params.showHelp
+      ? [
+          'Welcome to your Boomberg terminal!',
+          '',
+          {
+            html: 'This is your one-stop shop for <del>feeding all your money into a thinly veiled casino</del> all your stonk-transacting needs!',
+          },
+          '',
+          "Type 'help' then hit <Enter> to get started.",
+          '',
+          this.shellPrefix,
+        ]
+      : [this.shellPrefix]
     this.cursorPosition = this.shellPrefix.length
     this._commands = this.makeCommands()
   }
@@ -67,6 +74,12 @@ export class Terminal {
     }
 
     const lastRow = this.contents[this.contents.length - 1]
+
+    // Only allow operating on text rows.
+    if (typeof lastRow !== 'string') {
+      return
+    }
+
     if (e.key === 'Backspace') {
       if (this.cursorPosition <= this.shellPrefix.length) {
         return
@@ -106,14 +119,14 @@ export class Terminal {
           return
         }
       } else if (this.commandHistory.length > 0) {
-        this.tempHistory = this.contents[this.contents.length - 1]
+        this.tempHistory = lastRow
         this.historyPosition = this.commandHistory.length - 1
       } else {
         return
       }
       this.contents[this.contents.length - 1] =
         `${this.shellPrefix}${this.commandHistory[this.historyPosition]}`
-      this.cursorPosition = this.contents[this.contents.length - 1].length
+      this.cursorPosition = lastRow.length
       return
     }
     if (e.key === 'ArrowDown') {
@@ -128,13 +141,11 @@ export class Terminal {
         this.historyPosition = this.contents.length
         this.contents[this.contents.length - 1] = `${this.tempHistory}`
       }
-      this.cursorPosition = this.contents[this.contents.length - 1].length
+      this.cursorPosition = lastRow.length
       return
     }
     if (e.key === 'Enter') {
-      await this.runCommand(
-        this.contents[this.contents.length - 1].substring(this.shellPrefix.length),
-      )
+      await this.runCommand(lastRow.substring(this.shellPrefix.length))
       this.newPrompt()
       return
     }
@@ -164,6 +175,9 @@ export class Terminal {
 
   addChar(c: string) {
     const lastRow = this.contents[this.contents.length - 1]
+    if (typeof lastRow !== 'string') {
+      return
+    }
     this.contents[this.contents.length - 1] =
       lastRow.substring(0, this.cursorPosition) + c + lastRow.substring(this.cursorPosition)
     this.cursorPosition++
@@ -220,7 +234,10 @@ export class Terminal {
   }
 
   addMessage(msg: string | string[]) {
-    this.contents.push('')
+    const lastRow = this.contents[this.contents.length - 1]
+    if (lastRow !== '') {
+      this.contents.push('')
+    }
     if (Array.isArray(msg)) {
       this.contents.push(...msg.map((m) => `  ${m}`))
     } else {
@@ -431,7 +448,7 @@ export const deleteTerminalFn = (): ((id: number) => void) => {
   }
 }
 
-export const getOrInitTerminal = (id: number): Terminal => {
+export const getOrInitTerminal = (id: number, showHelp: boolean): Terminal => {
   const terms = getContext('terms') as Record<number, Terminal>
   const user = getUser()
   const traderName = $derived(user.name ?? `trader${user.id}`)
@@ -443,6 +460,7 @@ export const getOrInitTerminal = (id: number): Terminal => {
       setName: (name: string) => {
         user.name = name
       },
+      showHelp,
     })
   }
   return terms[id]

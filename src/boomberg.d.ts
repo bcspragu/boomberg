@@ -6,6 +6,7 @@ export interface User {
 
 export interface TerminalNode {
   type: 'Terminal'
+  showHelp: boolean
 }
 
 export interface StonkNode {

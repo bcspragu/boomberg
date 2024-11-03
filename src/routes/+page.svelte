@@ -13,6 +13,7 @@
         type: 'Leaf',
         node: {
           type: 'Terminal',
+          showHelp: true,
         },
       },
     },
@@ -41,6 +42,7 @@
           type: 'Leaf',
           node: {
             type: 'Terminal',
+            showHelp: false,
           },
         }
       case 'Stonk':

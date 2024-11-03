@@ -6,13 +6,14 @@
   interface Props {
     id: number
     viewRequested: (req: ViewRequest) => void
+    showHelp: boolean
   }
 
-  let { id, viewRequested }: Props = $props()
+  let { id, viewRequested, showHelp }: Props = $props()
 
   let terminalEl: HTMLDivElement
   let lastRowEl: HTMLDivElement | null = $state(null)
-  const term = getOrInitTerminal(id)
+  const term = getOrInitTerminal(id, showHelp)
   term.onNewPrompt = () => {
     if (!lastRowEl) {
       return
@@ -46,6 +47,9 @@
       return null
     }
     const row = term.contents[term.contents.length - 1]
+    if (typeof row !== 'string') {
+      return
+    }
     if (!term.showCursor) {
       return row
     }
@@ -62,12 +66,19 @@
   {onkeydown}
   bind:this={terminalEl}
   tabindex="0"
-  class="flex h-full w-full flex-col overflow-y-auto whitespace-pre bg-black p-4 font-mono leading-none text-green-400"
+  class="flex h-full w-full flex-col overflow-y-auto whitespace-pre text-wrap bg-black p-4 font-mono leading-none text-green-400"
 >
   {#each term.contents as row, i}
     {#if i < term.contents.length - 1}
       <div>
-        {#if row}{row}{:else}&nbsp;{/if}
+        {#if !row}
+          &nbsp;
+        {:else if typeof row === 'string'}
+          {row}
+        {:else}
+          <!-- eslint-disable-next-line svelte/no-at-html-tags We only use this with trusted strings -->
+          {@html row.html}
+        {/if}
       </div>
     {/if}
   {/each}
