@@ -14,10 +14,17 @@
   const { layout, nodeID, viewRequested }: Props = $props()
 
   const node = $derived(layout.nodes[nodeID])
+
+  const close = () => {
+    viewRequested(nodeID, { viewType: 'Close' })
+  }
 </script>
 
 {#snippet theNode()}
   {#if node.type === 'Leaf'}
+    <button onclick={close} class="text-xl absolute top-0 right-0 mr-2 mt-2 text-green-400 cursor-pointer font-mono font-bold z-10">
+      x
+    </button>
     {#if node.node.type === 'Terminal'}
       <Terminal id={node.id} viewRequested={(req) => viewRequested(node.id, req)} />
     {:else if node.node.type === 'Stonk'}
@@ -40,7 +47,7 @@
 {#if nodeID === layout.rootID}
   {@render theNode()}
 {:else}
-  <Pane>
+  <Pane class="relative">
     {@render theNode()}
   </Pane>
 {/if}

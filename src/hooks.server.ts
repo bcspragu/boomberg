@@ -16,7 +16,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       })
       .returning({ id: session.id, createdAt: session.createdAt })
     if (res.length !== 1) {
-      throw new Error(`got ${res.length} IDs back`)
+      throw new Error(`got ${res.length} session IDs back`)
     }
 
     event.cookies.set('session', sessionId, {

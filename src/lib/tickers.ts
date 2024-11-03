@@ -4,9 +4,18 @@ import tickers from '../data/ticker_pairs.json'
 const MAX_UINT32 = 4294967295 // 2 ** 32 - 1
 const SAFETY_COUNT = 15
 
-interface Ticker {
+export interface Ticker {
   ticker: string
   company: string
+}
+
+export const getCompanyForTicker = (ticker: string): string | null => {
+  for (const t of tickers) {
+    if (t[0] === ticker) {
+      return t[1]
+    }
+  }
+  return null
 }
 
 export const getRandomTicker = (): Ticker => {

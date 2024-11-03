@@ -1,8 +1,10 @@
 <script lang="ts">
   import Node from '../lib/Node.svelte'
   import type { SplitNode, ViewLayout, ViewNode, ViewRequest } from '../boomberg'
+    import { deleteTerminalFn } from '$lib/context/terminal.svelte'
 
   let nextNodeID: number = 2
+  let deleteTerminal = deleteTerminalFn()
   let viewLayout: ViewLayout = $state({
     rootID: 1,
     nodes: {
@@ -16,7 +18,7 @@
     },
   })
 
-  const findParent = (id: number): SplitNode | null => {
+  const findParent = (id: number): SplitNode & {id: number} | null => {
     const nodes: number[] = [viewLayout.rootID]
     while (nodes.length > 0) {
       const nodeID = nodes.pop()!
@@ -50,14 +52,32 @@
           },
         }
       case 'Close':
-        throw new Error("closing isn't about creating a  new node!")
+        throw new Error("closing isn't about creating a new node!")
     }
   }
 
   const removeNode = (id: number) => {
-    console.log('remove', id)
-    // TODO: Implement
     // Algorithm: Find parent, if any, and replace it with other sibling
+    const p = findParent(id)
+    if (!p) {
+      // No parent, we're root, we can't be removed.
+      return
+    }
+    // If we're at index 1, return index 0. If we're at index 0, return index 1
+    const siblingID = p.children[1 - p.children.findIndex((v) => v === id)]
+    // Now find our parent's parent, to do the replacement.
+    const gp = findParent(p.id)
+    if (gp) {
+      // Replace parent ID with promoted sibling ID
+      const parentIndex = gp.children.findIndex((v) => v === p.id)
+      gp.children[parentIndex] = siblingID
+    } else {
+      // Make the sibling the new root.
+      viewLayout.rootID = siblingID
+    }
+    delete viewLayout.nodes[p.id]
+    delete viewLayout.nodes[id]
+    deleteTerminal(id) // Harmless if the node isn't a terminal
   }
 
   const viewRequested = (id: number, req: ViewRequest) => {

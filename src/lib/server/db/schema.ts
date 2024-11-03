@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { sqliteTable, integer, text, check } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, integer, text, check, index, primaryKey } from 'drizzle-orm/sqlite-core'
 
 export const session = sqliteTable('session', {
   id: integer('id').primaryKey(),
@@ -15,7 +15,7 @@ export const game = sqliteTable(
   {
     id: integer('id').primaryKey(),
     ticker: text('ticker').notNull(),
-    creatorId: text('creator_id')
+    creatorId: integer('creator_id')
       .notNull()
       .references(() => session.id),
     createdAt: integer('created_at', { mode: 'number' })
@@ -28,5 +28,19 @@ export const game = sqliteTable(
       'status_check',
       sql`${t.status} IN ('pending', 'in_progress', 'completed')`,
     ),
+    tickerIndex: index('ticker_idx').on(t.ticker),
+    createdAtIndex: index('created_at_idx').on(t.createdAt),
   }),
 )
+
+export const gameParticipant = sqliteTable('game_participant', {
+  gameId: integer('game_id').notNull(),
+  userId: integer('user_id').notNull(),
+  joinedAt: integer('joined_at', { mode: 'number' })
+    .notNull()
+    .default(sql`(CURRENT_TIMESTAMP)`),
+}, (t) => {
+  return {
+    pk: primaryKey({ columns: [t.gameId, t.userId] }),
+  };
+})

@@ -30,7 +30,7 @@
 </script>
 
 <div class="h-full w-full bg-black text-green-400">
-  <svg width={w} height={h} bind:clientWidth={w} bind:clientHeight={h}>
+  <svg width="100%" height="100%" bind:clientWidth={w} bind:clientHeight={h}>
     <polyline points={data.map((d, i) => [x(i), y(d)]).join(' ')} />
   </svg>
 </div>
