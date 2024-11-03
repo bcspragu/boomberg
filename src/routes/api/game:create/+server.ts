@@ -5,7 +5,7 @@ import { db } from '$lib/server/db'
 import { and, eq, gt, ne, sql } from 'drizzle-orm'
 import { game, gameParticipant } from '$lib/server/db/schema'
 
-export const POST: RequestHandler = async ({request, locals}) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
   const { force } = await request.json()
 
   let ticker: Ticker | null = null
@@ -21,11 +21,14 @@ export const POST: RequestHandler = async ({request, locals}) => {
       .select(fields)
       .from(game)
       .innerJoin(gameParticipant, eq(game.id, gameParticipant.gameId))
-      .where(and(
-        eq(gameParticipant.userId, locals.user.id),
-        ne(game.status, 'completed'),
-        gt(game.createdAt, sql`unixepoch('now', '-1 day')` ),
-      )).limit(10)
+      .where(
+        and(
+          eq(gameParticipant.userId, locals.user.id),
+          ne(game.status, 'completed'),
+          gt(game.createdAt, sql`unixepoch('now', '-1 day')`),
+        ),
+      )
+      .limit(10)
     if (existingGames.length > 0) {
       return json({
         existingGames,
@@ -38,11 +41,11 @@ export const POST: RequestHandler = async ({request, locals}) => {
 
     // Make sure there are no other games with the same ticker plausibly still open.
     const existingGame = await db.query.game.findFirst({
-      columns: {id: true, creatorId: true, status: true},
+      columns: { id: true, creatorId: true, status: true },
       where: and(
         eq(game.ticker, t.ticker),
         ne(game.status, 'completed'),
-        gt(game.createdAt, sql`unixepoch('now', '-1 day')` ),
+        gt(game.createdAt, sql`unixepoch('now', '-1 day')`),
       ),
     })
 
@@ -56,17 +59,20 @@ export const POST: RequestHandler = async ({request, locals}) => {
 
   if (!ticker) {
     return json({
-      error: 'couldn\'t find an available ticker symbol, server might be overloaded!'
+      error: "couldn't find an available ticker symbol, server might be overloaded!",
     })
   }
 
   // Create the game, add the user to it
   await db.transaction(async (tx) => {
-    const res = await tx.insert(game).values({
-      creatorId: locals.user.id,
-      ticker: ticker.ticker,
-      status: 'pending',
-    }).returning({id: game.id})
+    const res = await tx
+      .insert(game)
+      .values({
+        creatorId: locals.user.id,
+        ticker: ticker.ticker,
+        status: 'pending',
+      })
+      .returning({ id: game.id })
     if (res.length !== 1) {
       throw new Error(`got ${res.length} game IDs back`)
     }
@@ -76,7 +82,6 @@ export const POST: RequestHandler = async ({request, locals}) => {
     })
   })
 
-  
   return json({
     code: ticker.ticker,
     desc: ticker.company,

@@ -1,7 +1,7 @@
 <script lang="ts">
   import Node from '../lib/Node.svelte'
   import type { SplitNode, ViewLayout, ViewNode, ViewRequest } from '../boomberg'
-    import { deleteTerminalFn } from '$lib/context/terminal.svelte'
+  import { deleteTerminalFn } from '$lib/context/terminal.svelte'
 
   let nextNodeID: number = 2
   let deleteTerminal = deleteTerminalFn()
@@ -18,7 +18,7 @@
     },
   })
 
-  const findParent = (id: number): SplitNode & {id: number} | null => {
+  const findParent = (id: number): (SplitNode & { id: number }) | null => {
     const nodes: number[] = [viewLayout.rootID]
     while (nodes.length > 0) {
       const nodeID = nodes.pop()!

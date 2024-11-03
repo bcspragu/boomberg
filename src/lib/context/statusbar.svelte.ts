@@ -22,9 +22,12 @@ export const updateStatusBar = (msg: string, loc: StatusBarLoc) => {
   switch (loc) {
     case 'left':
       sb.leftMessage = msg
+      break
     case 'center':
       sb.centerMessage = msg
+      break
     case 'right':
       sb.rightMessage = msg
+      break
   }
 }

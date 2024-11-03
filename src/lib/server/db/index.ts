@@ -9,6 +9,6 @@ const client = new Database(DATABASE_URL)
 export const db = drizzle(client, { schema })
 
 db.run(sql`PRAGMA journal_mode=WAL`)
-db.run(sql`PRAGMA foreign_keys=1`)    // Enable foreign keys
+db.run(sql`PRAGMA foreign_keys=1`) // Enable foreign keys
 db.run(sql`PRAGMA busy_timeout=1000`) // 1000ms
-db.run(sql`PRAGMA synchronous=1`)     // NORMAL, see https://www.sqlite.org/pragma.html#pragma_synchronous
+db.run(sql`PRAGMA synchronous=1`) // NORMAL, see https://www.sqlite.org/pragma.html#pragma_synchronous

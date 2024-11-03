@@ -22,7 +22,10 @@
 
 {#snippet theNode()}
   {#if node.type === 'Leaf'}
-    <button onclick={close} class="text-xl absolute top-0 right-0 mr-2 mt-2 text-green-400 cursor-pointer font-mono font-bold z-10">
+    <button
+      onclick={close}
+      class="absolute right-0 top-0 z-10 mr-2 mt-2 cursor-pointer font-mono text-xl font-bold text-green-400"
+    >
       x
     </button>
     {#if node.node.type === 'Terminal'}

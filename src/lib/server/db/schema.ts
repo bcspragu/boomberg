@@ -33,14 +33,18 @@ export const game = sqliteTable(
   }),
 )
 
-export const gameParticipant = sqliteTable('game_participant', {
-  gameId: integer('game_id').notNull(),
-  userId: integer('user_id').notNull(),
-  joinedAt: integer('joined_at', { mode: 'number' })
-    .notNull()
-    .default(sql`(CURRENT_TIMESTAMP)`),
-}, (t) => {
-  return {
-    pk: primaryKey({ columns: [t.gameId, t.userId] }),
-  };
-})
+export const gameParticipant = sqliteTable(
+  'game_participant',
+  {
+    gameId: integer('game_id').notNull(),
+    userId: integer('user_id').notNull(),
+    joinedAt: integer('joined_at', { mode: 'number' })
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (t) => {
+    return {
+      pk: primaryKey({ columns: [t.gameId, t.userId] }),
+    }
+  },
+)

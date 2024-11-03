@@ -23,11 +23,11 @@ export class Terminal {
   _shellPrefix: () => string
   _setName: (name: string) => void
 
-  onNewPrompt: ((() => void) | null) = null
-  onViewRequested: (((req: ViewRequest) => void) | null) = null
+  onNewPrompt: (() => void) | null = null
+  onViewRequested: ((req: ViewRequest) => void) | null = null
 
   _commands: Record<string, Command>
-  
+
   contents: string[] = $state([])
   cursorPosition: number = $state(0)
   showCursor: boolean = $state(true)
@@ -111,7 +111,8 @@ export class Terminal {
       } else {
         return
       }
-      this.contents[this.contents.length - 1] = `${this.shellPrefix}${this.commandHistory[this.historyPosition]}`
+      this.contents[this.contents.length - 1] =
+        `${this.shellPrefix}${this.commandHistory[this.historyPosition]}`
       this.cursorPosition = this.contents[this.contents.length - 1].length
       return
     }
@@ -121,7 +122,8 @@ export class Terminal {
       }
       if (this.historyPosition < this.commandHistory.length - 1) {
         this.historyPosition++
-        this.contents[this.contents.length - 1] = `${this.shellPrefix}${this.commandHistory[this.historyPosition]}`
+        this.contents[this.contents.length - 1] =
+          `${this.shellPrefix}${this.commandHistory[this.historyPosition]}`
       } else {
         this.historyPosition = this.contents.length
         this.contents[this.contents.length - 1] = `${this.tempHistory}`
@@ -130,7 +132,9 @@ export class Terminal {
       return
     }
     if (e.key === 'Enter') {
-      await this.runCommand(this.contents[this.contents.length - 1].substring(this.shellPrefix.length))
+      await this.runCommand(
+        this.contents[this.contents.length - 1].substring(this.shellPrefix.length),
+      )
       this.newPrompt()
       return
     }
@@ -188,7 +192,9 @@ export class Terminal {
     for (let i = 0; i < parts.length; i++) {
       const cmd = cmds[parts[i]]
       if (!cmd) {
-        this.addMessage(i === 0 ? `unknown command: ${parts[i]}` : `unknown subcommand: ${parts[i]}`)
+        this.addMessage(
+          i === 0 ? `unknown command: ${parts[i]}` : `unknown subcommand: ${parts[i]}`,
+        )
         return
       }
 
@@ -279,11 +285,11 @@ export class Terminal {
             action: async (args: string[]) => {
               const force = args.length > 0 && args[0] === '--force'
               const resp = await fetch('/api/game:create', {
-                  method: 'POST',
-                  body: JSON.stringify({force}),
-                  headers: {
-                    'content-type': 'application/json',
-                  }
+                method: 'POST',
+                body: JSON.stringify({ force }),
+                headers: {
+                  'content-type': 'application/json',
+                },
               })
               if (!resp.ok) {
                 this.addMessage('Error while trying to make a new game')
@@ -295,14 +301,16 @@ export class Terminal {
                 return
               }
               if (existingGames) {
-                const egs = existingGames as {ticker: string}[]
+                const egs = existingGames as { ticker: string }[]
                 if (egs.length === 1) {
-                  this.addMessage(`You're in a game already, join that with: game join $${egs[0].ticker}`)
+                  this.addMessage(
+                    `You're in a game already, join that with: game join $${egs[0].ticker}`,
+                  )
                 } else if (egs.length > 0) {
                   this.addMessage([
                     `You're in a few ongoing games, join one of those instead with: game join <ticker>`,
                     '',
-                    ...egs.map((g) => `$${g.ticker}`)
+                    ...egs.map((g) => `$${g.ticker}`),
                   ])
                 } else {
                   this.addMessage('Error while making a new game (no existing games?)')
@@ -401,13 +409,15 @@ export class Terminal {
           this.addMessage([
             root ? 'List of commands' : `List of '${args.join(' ')}' subcommands`,
             '',
-            ...Object.entries(cmds).map(([name, cmd]) => `${name}: ${' '.repeat(longestName - name.length)}${cmd.description}`)
+            ...Object.entries(cmds).map(
+              ([name, cmd]) =>
+                `${name}: ${' '.repeat(longestName - name.length)}${cmd.description}`,
+            ),
           ])
         },
       },
     }
   }
-  
 }
 
 export const initTerminals = () => {
@@ -430,7 +440,9 @@ export const getOrInitTerminal = (id: number): Terminal => {
   if (!terms[id]) {
     terms[id] = new Terminal({
       shellPrefix: () => shellPrefix,
-      setName: (name: string) => { user.name = name },
+      setName: (name: string) => {
+        user.name = name
+      },
     })
   }
   return terms[id]
