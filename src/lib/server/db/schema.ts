@@ -45,6 +45,7 @@ export const gameParticipant = sqliteTable(
   (t) => {
     return {
       pk: primaryKey({ columns: [t.gameId, t.userId] }),
+      joinedAtIndex: index('joined_at_idx').on(t.joinedAt),
     }
   },
 )

@@ -1,11 +1,13 @@
 import { getContext, setContext } from 'svelte'
 import { getUser } from './user.svelte'
 import type { ViewRequest } from '../../boomberg'
+import { getSSE, type SSE } from './sse.svelte'
 
 export interface TerminalParams {
   shellPrefix: () => string
   setName: (name: string) => void
   showHelp: boolean
+  sse: SSE
 }
 
 interface ActionCommand {
@@ -20,6 +22,13 @@ type Command = (ActionCommand | ParentCommand) & {
   description: string
 }
 
+type RowContent =
+  | string
+  | { html: string }
+  | { error: string }
+  | { warn: string }
+  | { loading: string }
+
 export class Terminal {
   _shellPrefix: () => string
   _setName: (name: string) => void
@@ -29,17 +38,19 @@ export class Terminal {
 
   _commands: Record<string, Command>
 
-  contents: (string | { html: string })[] = $state([])
+  contents: RowContent[] = $state([])
   cursorPosition: number = $state(0)
   showCursor: boolean = $state(true)
   shouldBlink: boolean = $state(false)
   historyPosition: number | null = $state(null)
   commandHistory: string[] = $state([])
   tempHistory: string = $state('')
+  sse: SSE
 
   constructor(params: TerminalParams) {
     this._shellPrefix = params.shellPrefix
     this._setName = params.setName
+    this.sse = params.sse
     this.contents = params.showHelp
       ? [
           'Welcome to your Boomberg terminal!',
@@ -233,15 +244,32 @@ export class Terminal {
     }
   }
 
-  addMessage(msg: string | string[]) {
+  addMessage(msg: RowContent | RowContent[]) {
     const lastRow = this.contents[this.contents.length - 1]
     if (lastRow !== '') {
       this.contents.push('')
     }
+
+    const pushMessage = (m: RowContent) => {
+      if (typeof m === 'string') {
+        this.contents.push(`  ${m}`)
+      } else if ('html' in m) {
+        this.contents.push({ html: `  ${m.html}` })
+      } else if ('warn' in m) {
+        this.contents.push({ warn: `  ${m.warn}` })
+      } else if ('error' in m) {
+        this.contents.push({ error: `  ${m.error}` })
+      } else if ('loading' in m) {
+        this.contents.push(m)
+      }
+    }
+
     if (Array.isArray(msg)) {
-      this.contents.push(...msg.map((m) => `  ${m}`))
+      for (const m of msg) {
+        pushMessage(m)
+      }
     } else {
-      this.contents.push(`  ${msg}`)
+      pushMessage(msg)
     }
     this.contents.push('')
   }
@@ -291,6 +319,20 @@ export class Terminal {
       game: {
         description: 'actions related to setting up a game',
         subcommands: {
+          lobby: {
+            description: "view the lobby the game you're in",
+            action: async () => {
+              const removeListener = this.sse.onUserJoined((ev) => {
+                for (const u of ev.users) {
+                  console.log('TODO: render this list of users', u)
+                }
+              })
+
+              await fetch('/api/game:lobby', { method: 'POST' })
+
+              console.log('TODO: Figure out when to call', removeListener)
+            },
+          },
           start: {
             description: 'start a game',
             action: () => {
@@ -309,20 +351,20 @@ export class Terminal {
                 },
               })
               if (!resp.ok) {
-                this.addMessage('Error while trying to make a new game')
+                this.addMessage({ error: 'Error while trying to make a new game' })
                 return
               }
               const { code, desc, existingGames, error } = await resp.json()
               if (error) {
-                this.addMessage(`Couldn't make a new game: ${error}`)
+                this.addMessage({ error: `Couldn't make a new game: ${error}` })
                 return
               }
               if (existingGames) {
                 const egs = existingGames as { ticker: string }[]
                 if (egs.length === 1) {
-                  this.addMessage(
-                    `You're in a game already, join that with: game join $${egs[0].ticker}`,
-                  )
+                  this.addMessage({
+                    warn: `You're in a game already, join that with: game join $${egs[0].ticker}`,
+                  })
                 } else if (egs.length > 0) {
                   this.addMessage([
                     `You're in a few ongoing games, join one of those instead with: game join <ticker>`,
@@ -350,8 +392,50 @@ export class Terminal {
           },
           join: {
             description: "join someone else's game",
-            action: () => {
-              fetch('/api/game:join', { method: 'POST' })
+            action: async (args: string[]) => {
+              if (args.length === 0) {
+                this.addMessage('you need to specify a game code')
+                return
+              }
+              const force = args.length >= 2 && args[1] === '--force'
+
+              const resp = await fetch('/api/game:join', {
+                method: 'POST',
+                body: JSON.stringify({
+                  gameTicker: args[0],
+                  force,
+                }),
+                headers: {
+                  'content-type': 'application/json',
+                },
+              })
+              if (!resp.ok) {
+                this.addMessage({ error: 'Error while trying to join game' })
+                return
+              }
+              const { existingGames, error } = await resp.json()
+              if (error) {
+                this.addMessage({ error: `Couldn't make a new game: ${error}` })
+                return
+              }
+              if (existingGames) {
+                const egs = existingGames as { ticker: string }[]
+                if (egs.length === 1) {
+                  this.addMessage({
+                    warn: `You're in a game already, join that with: game join $${egs[0].ticker}`,
+                  })
+                } else if (egs.length > 0) {
+                  this.addMessage([
+                    `You're in a few ongoing games, join one of those instead with: game join <ticker>`,
+                    '',
+                    ...egs.map((g) => `$${g.ticker}`),
+                  ])
+                } else {
+                  this.addMessage('Error while making a new game (no existing games?)')
+                }
+                return
+              }
+              this.addMessage('Joined game!')
             },
           },
           watch: {
@@ -386,22 +470,22 @@ export class Terminal {
                 },
               })
               if (!resp.ok) {
-                this.addMessage('Error while setting name')
+                this.addMessage({ error: 'Error while setting name' })
                 return
               }
               const { newName, error } = await resp.json()
               if (error) {
-                this.addMessage(`Invalid name: ${error}`)
+                this.addMessage({ error: `Invalid name: ${error}` })
                 return
               }
               if (!newName || typeof newName !== 'string') {
-                this.addMessage('Error while setting name')
+                this.addMessage({ error: 'Error while setting name' })
                 return
               }
               this._setName(newName)
-              this.addMessage(
-                `Note: you can't change your name once the game begins, choose carefully`,
-              )
+              this.addMessage({
+                warn: `Note: you can't change your name once the game begins, choose carefully`,
+              })
             },
           },
         },
@@ -451,6 +535,7 @@ export const deleteTerminalFn = (): ((id: number) => void) => {
 export const getOrInitTerminal = (id: number, showHelp: boolean): Terminal => {
   const terms = getContext('terms') as Record<number, Terminal>
   const user = getUser()
+  const sse = getSSE()
   const traderName = $derived(user.name ?? `trader${user.id}`)
   const shellPrefix = $derived(`${traderName}@boom $ `)
 
@@ -461,6 +546,7 @@ export const getOrInitTerminal = (id: number, showHelp: boolean): Terminal => {
         user.name = name
       },
       showHelp,
+      sse,
     })
   }
   return terms[id]

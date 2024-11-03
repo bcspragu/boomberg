@@ -1,9 +1,10 @@
 import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
-import { getRandomTicker, type Ticker } from '$lib/tickers'
+import { getRandomTicker, type Ticker } from '$lib/server/tickers'
 import { db } from '$lib/server/db'
 import { and, eq, gt, ne, sql } from 'drizzle-orm'
 import { game, gameParticipant } from '$lib/server/db/schema'
+import { existingActiveGamesForUser } from '$lib/server/db/common'
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   const { force } = await request.json()
@@ -11,24 +12,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   let ticker: Ticker | null = null
 
   if (!force) {
-    const fields = {
-      id: game.id,
-      ticker: game.ticker,
-      creatorId: game.creatorId,
-      status: game.status,
-    }
-    const existingGames = await db
-      .select(fields)
-      .from(game)
-      .innerJoin(gameParticipant, eq(game.id, gameParticipant.gameId))
-      .where(
-        and(
-          eq(gameParticipant.userId, locals.user.id),
-          ne(game.status, 'completed'),
-          gt(game.createdAt, sql`unixepoch('now', '-1 day')`),
-        ),
-      )
-      .limit(10)
+    const existingGames = await existingActiveGamesForUser(locals.user.id)
     if (existingGames.length > 0) {
       return json({
         existingGames,

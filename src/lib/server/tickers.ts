@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto'
-import tickers from '../data/ticker_pairs.json'
+import tickers from '$lib/server/data/ticker_pairs.json'
 
 const MAX_UINT32 = 4294967295 // 2 ** 32 - 1
 const SAFETY_COUNT = 15

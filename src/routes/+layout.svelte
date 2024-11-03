@@ -1,16 +1,20 @@
 <script lang="ts">
-  import { type Snippet } from 'svelte'
+  import { onMount, type Snippet } from 'svelte'
   import '../app.css'
   import type { LayoutData } from './$types'
   import { setUser } from '$lib/context/user.svelte'
   import { initTerminals } from '$lib/context/terminal.svelte'
   import { initStatusBar } from '$lib/context/statusbar.svelte'
+  import { connectSSE } from '$lib/context/sse.svelte'
 
   let { data, children }: { data: LayoutData; children: Snippet } = $props()
 
   setUser(data.user)
   initTerminals()
   const bar = initStatusBar()
+  onMount(() => {
+    connectSSE()
+  })
 </script>
 
 <div class="flex h-full w-full flex-col">

@@ -60,3 +60,15 @@ export interface Terminal {
   commandHistory: string[]
   tempHistory: string
 }
+
+interface UserJoinedEventUser {
+  id: number
+  name: string
+}
+
+interface UserJoinedEvent {
+  type: 'userJoined'
+  users: UserJoinedEventUser[]
+}
+
+export type UserEvent = UserJoinedEvent

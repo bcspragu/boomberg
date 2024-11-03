@@ -10,7 +10,7 @@ This project currently doesn't exist, because I haven't built any of it yet, but
 
 ### Get needed data
 
-Download [a list of stock tickers from the SEC](https://www.sec.gov/files/company_tickers.json) to `src/data/company_tickers.json`, then generate a preprocessed version used by the app with:
+Download [a list of stock tickers from the SEC](https://www.sec.gov/files/company_tickers.json) to `src/lib/server/data/company_tickers.json`, then generate a preprocessed version used by the app with:
 
 ```
 jq -c \

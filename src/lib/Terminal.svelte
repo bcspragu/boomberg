@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import { getOrInitTerminal } from '$lib/context/terminal.svelte'
   import type { ViewRequest } from '../boomberg'
+  import Loader from '$lib/Loader.svelte'
 
   interface Props {
     id: number
@@ -75,9 +76,15 @@
           &nbsp;
         {:else if typeof row === 'string'}
           {row}
-        {:else}
+        {:else if 'html' in row}
           <!-- eslint-disable-next-line svelte/no-at-html-tags We only use this with trusted strings -->
           {@html row.html}
+        {:else if 'error' in row}
+          <span class="text-red-400">{row.error}</span>
+        {:else if 'warn' in row}
+          <span class="text-yellow-400">{row.warn}</span>
+        {:else if 'loading' in row}
+          <Loader /><span>{row.loading}</span>
         {/if}
       </div>
     {/if}
