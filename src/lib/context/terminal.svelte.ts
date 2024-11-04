@@ -10,8 +10,15 @@ export interface TerminalParams {
   sse: SSE
 }
 
+// This is for if a command 'blocks', it'll receive the events and return 'true' when it should unblock.
+type BlockHandler = ((e: KeyboardEvent) => {unblock: boolean})
+
+interface ActionResponse {
+  blockHandler: BlockHandler
+}
+
 interface ActionCommand {
-  action: (args: string[]) => void | Promise<void>
+  action: (args: string[]) => (void | Promise<void> | ActionResponse | Promise<ActionResponse>)
 }
 
 interface ParentCommand {
@@ -47,6 +54,8 @@ export class Terminal {
   tempHistory: string = $state('')
   sse: SSE
 
+  activeBlockHandler: BlockHandler | null = null
+
   constructor(params: TerminalParams) {
     this._shellPrefix = params.shellPrefix
     this._setName = params.setName
@@ -73,6 +82,13 @@ export class Terminal {
   }
 
   async handleKeydown(e: KeyboardEvent) {
+    if (this.activeBlockHandler) {
+      const { unblock } = this.activeBlockHandler(e)
+      if (unblock) {
+        this.activeBlockHandler = null
+        return
+      }
+    }
     // Keys to ignore
     switch (e.key) {
       case 'Shift':
@@ -156,8 +172,10 @@ export class Terminal {
       return
     }
     if (e.key === 'Enter') {
-      await this.runCommand(lastRow.substring(this.shellPrefix.length))
-      this.newPrompt()
+      const { newPrompt } = await this.runCommand(lastRow.substring(this.shellPrefix.length))
+      if (newPrompt) {
+        this.newPrompt()
+      }
       return
     }
     if (e.ctrlKey && e.key === 'c') {
@@ -203,14 +221,14 @@ export class Terminal {
     }
   }
 
-  async runCommand(rawCmd: string) {
+  async runCommand(rawCmd: string): Promise<{ newPrompt: boolean }> {
     this.commandHistory.push(rawCmd)
     const parts = rawCmd
       .trim()
       .split(' ')
       .filter((v) => v)
     if (!parts[0]) {
-      return
+      return {newPrompt: true}
     }
 
     let cmds = this._commands
@@ -220,22 +238,27 @@ export class Terminal {
         this.addMessage(
           i === 0 ? `unknown command: ${parts[i]}` : `unknown subcommand: ${parts[i]}`,
         )
-        return
+        return {newPrompt: true}
       }
 
       // Command has a direct action, run it.
       if ('action' in cmd) {
-        await Promise.resolve(cmd.action(parts.slice(i + 1)))
-        return
+        const resp = await Promise.resolve(cmd.action(parts.slice(i + 1)))
+        if (resp) {
+          this.activeBlockHandler = resp.blockHandler
+          return { newPrompt: false }
+        }
+        return {newPrompt: true}
       }
 
       cmds = cmd.subcommands
       if (i === parts.length - 1) {
         const help = this._commands['help'] as ActionCommand
         help.action(parts)
-        return
+        return {newPrompt: true}
       }
     }
+    return {newPrompt: true}
   }
 
   viewRequested(req: ViewRequest) {
@@ -331,6 +354,11 @@ export class Terminal {
               await fetch('/api/game:lobby', { method: 'POST' })
 
               console.log('TODO: Figure out when to call', removeListener)
+
+              return {
+                blockHandler: (e: KeyboardEvent) => {
+                }
+              }
             },
           },
           start: {
@@ -387,6 +415,8 @@ export class Terminal {
                 `Others can join with 'game join $${code}'`,
                 '',
                 `When everyone is in, run 'game start'`,
+                '',
+                `You can check who's in the lobby with 'game lobby'`,
               ])
             },
           },

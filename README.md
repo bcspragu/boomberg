@@ -45,6 +45,7 @@ You can preview the production build with `npm run preview`.
 
 ### Development
 
+- [ ] Finish building lobby functionality
 - [ ] Generate stonk trajectories
   - Each stonk should get a randomly generated trajectory
     - Shapes should be dramatic. Some should go way up, some should go sideways, some should legitimately crater, some should have crazy swings.
