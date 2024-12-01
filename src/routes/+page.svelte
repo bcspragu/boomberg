@@ -51,6 +51,8 @@
           type: 'Leaf',
           node: {
             type: 'Stonk',
+            seed: req.seed,
+            ticker: req.ticker,
           },
         }
       case 'Close':

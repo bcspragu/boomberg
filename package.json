@@ -21,6 +21,7 @@
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
     "@types/better-sqlite3": "^7.6.11",
     "@types/eslint": "^9.6.0",
+    "@types/seedrandom": "^3.0.8",
     "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.22.0",
     "eslint": "^9.7.0",
@@ -41,6 +42,7 @@
   "dependencies": {
     "better-sqlite3": "^11.1.2",
     "drizzle-orm": "^0.33.0",
+    "seedrandom": "^3.0.5",
     "svelte-splitpanes": "^8.0.9"
   }
 }

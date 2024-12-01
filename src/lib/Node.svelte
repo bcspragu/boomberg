@@ -35,7 +35,7 @@
         viewRequested={(req) => viewRequested(node.id, req)}
       />
     {:else if node.node.type === 'Stonk'}
-      <Stonk />
+      <Stonk ticker={node.node.ticker} seed={node.node.seed} />
     {/if}
   {:else if node.type === 'Split'}
     <Splitpanes

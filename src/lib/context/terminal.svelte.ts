@@ -11,14 +11,14 @@ export interface TerminalParams {
 }
 
 // This is for if a command 'blocks', it'll receive the events and return 'true' when it should unblock.
-type BlockHandler = ((e: KeyboardEvent) => {unblock: boolean})
+type BlockHandler = (e: KeyboardEvent) => { unblock: boolean }
 
 interface ActionResponse {
   blockHandler: BlockHandler
 }
 
 interface ActionCommand {
-  action: (args: string[]) => (void | Promise<void> | ActionResponse | Promise<ActionResponse>)
+  action: (args: string[]) => void | Promise<void> | ActionResponse | Promise<ActionResponse>
 }
 
 interface ParentCommand {
@@ -228,7 +228,7 @@ export class Terminal {
       .split(' ')
       .filter((v) => v)
     if (!parts[0]) {
-      return {newPrompt: true}
+      return { newPrompt: true }
     }
 
     let cmds = this._commands
@@ -238,7 +238,7 @@ export class Terminal {
         this.addMessage(
           i === 0 ? `unknown command: ${parts[i]}` : `unknown subcommand: ${parts[i]}`,
         )
-        return {newPrompt: true}
+        return { newPrompt: true }
       }
 
       // Command has a direct action, run it.
@@ -248,17 +248,17 @@ export class Terminal {
           this.activeBlockHandler = resp.blockHandler
           return { newPrompt: false }
         }
-        return {newPrompt: true}
+        return { newPrompt: true }
       }
 
       cmds = cmd.subcommands
       if (i === parts.length - 1) {
         const help = this._commands['help'] as ActionCommand
         help.action(parts)
-        return {newPrompt: true}
+        return { newPrompt: true }
       }
     }
-    return {newPrompt: true}
+    return { newPrompt: true }
   }
 
   viewRequested(req: ViewRequest) {
@@ -323,7 +323,8 @@ export class Terminal {
           view: {
             description: 'view a stonk',
             action: (args: string[]) => {
-              this.viewRequested({ viewType: 'Stonk', ticker: args[0] })
+              // TODO: Set the seed based on stonk info
+              this.viewRequested({ viewType: 'Stonk', ticker: args[0], seed: args[0] })
             },
           },
         },
@@ -356,8 +357,9 @@ export class Terminal {
               console.log('TODO: Figure out when to call', removeListener)
 
               return {
-                blockHandler: (e: KeyboardEvent) => {
-                }
+                blockHandler: () => {
+                  return { unblock: true }
+                },
               }
             },
           },

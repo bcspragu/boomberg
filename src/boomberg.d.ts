@@ -11,6 +11,8 @@ export interface TerminalNode {
 
 export interface StonkNode {
   type: 'Stonk'
+  ticker: string
+  seed: string
 }
 
 export type SplitDirection = 'v' | 'h'
@@ -38,6 +40,7 @@ export interface ViewLayout {
 export interface StonkViewRequest {
   viewType: 'Stonk'
   ticker: string
+  seed: string
 }
 
 export interface TerminalViewRequest {
